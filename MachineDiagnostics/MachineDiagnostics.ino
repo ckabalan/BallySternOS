@@ -10,7 +10,7 @@
 #define ADDRESS_U11_B_CONTROL   0x1B
 
 void BSOS_DataWrite(int address, byte data) {
-  
+
   // Set data pins to output
   // Make pins 5-7 output (and pin 3 for R/W)
   DDRD = DDRD | 0xE8;
@@ -35,7 +35,7 @@ void BSOS_DataWrite(int address, byte data) {
   // Pulse VMA over one clock cycle
   // Set VMA ON
   PORTC = PORTC | 0x20;
-  
+
   // Wait while clock is low
   while(!(PIND & 0x10));
   // Wait while clock is high
@@ -46,7 +46,7 @@ void BSOS_DataWrite(int address, byte data) {
 
   // Unset address lines
   PORTC = PORTC & 0xE0;
-  
+
   // Set R/W back to HIGH
   PORTD = (PORTD | 0x08);
 
@@ -60,7 +60,7 @@ void BSOS_DataWrite(int address, byte data) {
 
 
 byte BSOS_DataRead(int address) {
-  
+
   // Set data pins to input
   // Make pins 5-7 input
   DDRD = DDRD & 0x1F;
@@ -80,7 +80,7 @@ byte BSOS_DataRead(int address) {
   // Pulse VMA over one clock cycle
   // Set VMA ON
   PORTC = PORTC | 0x20;
-  
+
   // Wait while clock is low
   while(!(PIND & 0x10));
 
@@ -107,7 +107,7 @@ boolean TestPIAChips() {
 
   boolean anyRegisterFailed = false;
   boolean chipPassed = true;
-  byte testVal; 
+  byte testVal;
 
   Serial.write("Attempting to read & write from U10\n");
   Serial.write("  Testing U10A Control Register\n");
@@ -148,7 +148,7 @@ boolean TestPIAChips() {
   if (!chipPassed) Serial.write("    The U10B control register failed\n");
   else Serial.write("    The U10B control register passed\n");
 
-  
+
   Serial.write("  Testing U11A Control Register\n");
   for (int count=0; count<256; count++) {
     BSOS_DataWrite(ADDRESS_U11_A_CONTROL, count);
@@ -198,7 +198,7 @@ void InitializeU10PIA() {
   // CB2 - lamp strobe 1
   // PA0-7 - output for switch bank, lamps, and BCD
   // PB0-7 - switch returns
-  
+
   BSOS_DataWrite(ADDRESS_U10_A_CONTROL, 0x38);
   // Set up U10A as output
   BSOS_DataWrite(ADDRESS_U10_A, 0xFF);
@@ -206,7 +206,7 @@ void InitializeU10PIA() {
   BSOS_DataWrite(ADDRESS_U10_A_CONTROL, BSOS_DataRead(ADDRESS_U10_A_CONTROL)|0x04);
   // Store F0 in U10A Output
   BSOS_DataWrite(ADDRESS_U10_A, 0xF0);
-  
+
   BSOS_DataWrite(ADDRESS_U10_B_CONTROL, 0x33);
   // Set up U10B as input
   BSOS_DataWrite(ADDRESS_U10_B, 0x00);
@@ -297,7 +297,7 @@ void InitializeU11PIA() {
   BSOS_DataWrite(ADDRESS_U11_A_CONTROL, BSOS_DataRead(ADDRESS_U11_A_CONTROL)|0x04);
   // Store 00 in U11A Output
   BSOS_DataWrite(ADDRESS_U11_A, 0x00);
-  
+
   BSOS_DataWrite(ADDRESS_U11_B_CONTROL, 0x30);
   // Set up U11B as output
   BSOS_DataWrite(ADDRESS_U11_B, 0xFF);
@@ -306,7 +306,7 @@ void InitializeU11PIA() {
   // Store 9F in U11B Output
   BSOS_DataWrite(ADDRESS_U11_B, 0x9F);
 //  CurrentSolenoidByte = 0x9F;
-  
+
 }
 
 boolean SetupPIAChips() {
@@ -452,7 +452,7 @@ void setup() {
     if (digitalRead(A5)) sawHigh = true;
     else sawLow = true;
   }
-  // If we saw both a high and low signal, then someone is toggling the 
+  // If we saw both a high and low signal, then someone is toggling the
   // VMA line, so we should hang here forever (until reset)
   if (sawHigh && sawLow) {
     Serial.write("Saw presence of M6800 processor -- program will halt\n");

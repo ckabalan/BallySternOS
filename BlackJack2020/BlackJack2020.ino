@@ -218,11 +218,11 @@ void DecodeDIPSwitchParameters() {
   CreditsPerCoin1 = ((dipBank0)&0x1F);
   HighScoreReplay = ((dipBank0&0x60)>>5)?true:false;
   MusicLevel = (dipBank0&0x80)?2:0;
-  
+
   CreditsPerCoin3 = ((dipBank1)&0x1F);
   NoveltyScoring = ((dipBank1&60)>>5);
   BallsPerGame = (dipBank1&80)?5:3;
-  
+
   MaximumCredits = (dipBank2&0x07)*5 + 5;
   CreditDisplay = (dipBank2&0x08)?true:false;
   MatchFeature = (dipBank2&0x10)?true:false;
@@ -230,7 +230,7 @@ void DecodeDIPSwitchParameters() {
   CreditsPerCoin2 = ((dipBank3)&0x0F);
   ResetSuitsPerBall = ((dipBank3)&0x60)?false:true;
   PlayerLosesOnTies = ((dipBank3)&0x80)?true:false;
-  
+
 }
 
 void GetStoredParameters() {
@@ -241,10 +241,10 @@ void GetStoredParameters() {
   } else {
     if (ballsOverride!=99) EEPROM.write(EEPROM_BALLS_OVERRIDE_BYTE, 99);
   }
-  
+
   ReadSetting(EEPROM_FREE_PLAY_BYTE, 0);
   FreePlayMode = (EEPROM.read(EEPROM_FREE_PLAY_BYTE)) ? true : false;
-    
+
   BallSaveNumSeconds = ReadSetting(EEPROM_BALL_SAVE_BYTE, 16);
   MaxTiltWarnings = ReadSetting(EEPROM_TILT_WARNING_BYTE, 2);
   MusicLevel = ReadSetting(EEPROM_MUSIC_LEVEL_BYTE, 2);
@@ -314,19 +314,19 @@ void setup() {
     if (curClockReading==1 && lastClockReading==0) numberOfClockTicks += 1;
     lastClockReading = curClockReading;
   }
-  // If we saw both a high and low signal, then someone is toggling the 
+  // If we saw both a high and low signal, then someone is toggling the
   // VMA line, so we should hang here forever (until reset)
   if (sawHigh && sawLow) {
     while (1);
   }
-    
+
   // Tell the OS about game-specific lights and switches
   BSOS_SetupGameSwitches(NUM_SWITCHES_WITH_TRIGGERS, NUM_PRIORITY_SWITCHES_WITH_TRIGGERS, TriggeredSwitches);
 
   if (DEBUG_MESSAGES) {
     Serial.write("Attempting to initialize the MPU\n");
   }
- 
+
   // Set up the chips and interrupts
   BSOS_InitializeMPU();
   BSOS_DisableSolenoidStack();
@@ -338,9 +338,9 @@ void setup() {
 
   // Read parameters from EEProm
   GetStoredParameters();
-  
+
   CurrentTime = millis();
-  PlaySoundEffect(SOUND_EFFECT_MACHINE_START);  
+  PlaySoundEffect(SOUND_EFFECT_MACHINE_START);
   BSOS_PushToSolenoidStack(SOL_SAUCER, 5, true);
 }
 
@@ -357,7 +357,7 @@ void PlaySoundEffect(byte soundEffectNum) {
       if (MusicLevel>1) {
         BSOS_PushToTimedSolenoidStack(SOL_CHIME_100, 3, CurrentTime+200, true);
         BSOS_PushToTimedSolenoidStack(SOL_CHIME_1000, 3, CurrentTime+400, true);
-      }    
+      }
     break;
     case SOUND_EFFECT_BALL_OVER:
       BSOS_PushToTimedSolenoidStack(SOL_CHIME_10, 3, CurrentTime, true);
@@ -487,7 +487,7 @@ void PlaySoundEffect(byte soundEffectNum) {
         BSOS_PushToTimedSolenoidStack(SOL_CHIME_10, 3, CurrentTime+300);
       }
     break;
-  }    
+  }
 }
 
 void PulseTopLights(byte topLightPulse, byte suitsComplete) {
@@ -520,7 +520,7 @@ void ShowSuitsComplete(byte suitsComplete) {
 
   BSOS_SetLampState(CLUB_BUMPER, (suitsComplete&0x01)?1:0, 0, (suitsShifted&0x01)?400:0);
   BSOS_SetLampState(RED_BUMPER, ((suitsComplete&0x0A)==0x0A)?1:0, 0, ((suitsShifted&0x0A)==0x0A)?400:0);
-  BSOS_SetLampState(SPADE_BUMPER, (suitsComplete&0x04)?1:0, 0, (suitsShifted&0x04)?400:0);  
+  BSOS_SetLampState(SPADE_BUMPER, (suitsComplete&0x04)?1:0, 0, (suitsShifted&0x04)?400:0);
 
   LeftOutlaneLit = ((suitsComplete&0x03)==0x03);
   RightOutlaneLit = ((suitsComplete&0x06)==0x06);
@@ -545,7 +545,7 @@ void ShowBetOnTree(byte betAmount) {
     betAmount -= 10;
   }
   else BSOS_SetLampState(BONUS_TREE_10, 0);
-  
+
   for (byte count=0; count<9; count++) {
     if ((count+1)<=betAmount) BSOS_SetLampState(BONUS_TREE_1+count, 1, 1);
     else BSOS_SetLampState(BONUS_TREE_1+count, 0);
@@ -566,11 +566,11 @@ void ShowPlayerWinsPulse(boolean turnOff=false) {
     if (PlayersTally==19) period = 200;
     if (PlayersTally==20) period = 100;
     if (PlayersTally==21) period = 50;
-*/    
+*/
     period = 1500;
     if (PlayersTally>16 && PlayersTally<22) period /= (PlayersTally-16);
     if (DealersTopCard==10 || DealersTopCard==1) period += 500;
-    
+
     byte phase = (CurrentTime/period)%4;
     BSOS_SetLampState(PLAYER_WINS, (phase!=0), phase%2);
   }
@@ -595,11 +595,11 @@ void ShowBonusOnTree(byte bonus, byte dim) {
     bonus -= 40;
   } else if (bonus>=20) {
     BSOS_SetLampState(BONUS_TREE_20, 1, dim);
-    bonus -= 20;   
+    bonus -= 20;
   } else {
     BSOS_SetLampState(BONUS_TREE_20, 0, dim);
   }
- 
+
   for (byte count=0; count<9; count++) {
     if (count==(bonus-1)) BSOS_SetLampState(BONUS_TREE_1+count, 1, dim);
     else BSOS_SetLampState(BONUS_TREE_1+count, 0, dim);
@@ -630,7 +630,7 @@ void ShowPlayerDisplays(boolean pauseScrolls=false, boolean showHighScores=false
 
     unsigned long scoreToShow = CurrentScores[count];
     if (showHighScores) scoreToShow = HighScore;
-    
+
     if (!showHighScores && count==CurrentPlayer) {
       // For current player, flash the score if nothing has been hit
       if (BallFirstSwitchHitTime==0) {
@@ -644,7 +644,7 @@ void ShowPlayerDisplays(boolean pauseScrolls=false, boolean showHighScores=false
       if (count<numDisplaysToShow) {
         BSOS_SetDisplay(count, scoreToShow, true);
       } else {
-        BSOS_SetDisplayBlank(count, 0x00);        
+        BSOS_SetDisplayBlank(count, 0x00);
       }
     }
   }
@@ -664,7 +664,7 @@ void AddCredit() {
   if (Credits<MaximumCredits) {
     Credits += 1;
     BSOS_WriteByteToEEProm(BSOS_CREDITS_EEPROM_BYTE, Credits);
-    PlaySoundEffect(SOUND_EFFECT_ADD_CREDIT);    
+    PlaySoundEffect(SOUND_EFFECT_ADD_CREDIT);
   } else {
   }
 
@@ -707,7 +707,7 @@ void ShuffleDeck() {
     else card1 = cardByte1 & 0x0F;
     if (randomPtr%2) card2 = cardByte2/16;
     else card2 = cardByte2 & 0x0F;
-    
+
     if (deckPtr%2) cardByte1 = (cardByte1 & 0x0F) | (card2 * 16);
     else cardByte1 = (cardByte1 & 0xF0) | card2;
     if (randomPtr%2) cardByte2 = (cardByte2 & 0x0F) | (card1 * 16);
@@ -776,14 +776,14 @@ int InitGamePlay(boolean curStateChanged) {
     BSOS_SetDisableFlippers(false);
     returnState = MACHINE_STATE_INIT_NEW_BALL;
   }
-  
-  return returnState;  
+
+  return returnState;
 }
 
 
 
 
-int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {  
+int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {
 
   if (curStateChanged) {
     BallFirstSwitchHitTime = 0;
@@ -799,12 +799,12 @@ int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {
     NumTiltWarnings = 0;
     LastTiltWarningTime = CurrentTime;
     SpecialCollectedThisBall = false;
-    
+
     BSOS_SetDisableFlippers(false);
-    BSOS_EnableSolenoidStack(); 
+    BSOS_EnableSolenoidStack();
     BSOS_SetDisplayCredits(Credits, CreditDisplay);
     SetPlayerLamps(playerNum+1, 500);
-    
+
     if (BSOS_ReadSingleSwitchState(SW_OUTHOLE)) {
       BSOS_PushToTimedSolenoidStack(SOL_OUTHOLE, 4, CurrentTime + 100);
       // Maybe just give it half a second to eject the ball?
@@ -820,7 +820,7 @@ int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {
     }
 
     if (ResetSuitsPerBall) SuitsComplete[playerNum] = 0;
-    
+
     BettingStage = BETTING_STAGE_BUILDING_STAKES;
     Bonus = 0;
     BonusX = 1;
@@ -833,15 +833,15 @@ int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {
     DealerHasAce = false;
     ShowSuitsComplete(SuitsComplete[playerNum]);
   }
-  
-  // We should only consider the ball initialized when 
+
+  // We should only consider the ball initialized when
   // the ball is no longer triggering the SW_OUTHOLE
   if (BSOS_ReadSingleSwitchState(SW_OUTHOLE)) {
     return MACHINE_STATE_INIT_NEW_BALL;
   } else {
     return MACHINE_STATE_NORMAL_GAMEPLAY;
   }
-  
+
 }
 
 
@@ -865,7 +865,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
   // Any state that's greater than CHUTE_3 is handled by the Base Self-test code
   // Any that's less, is machine specific, so we handle it here.
   if (curState>=MACHINE_STATE_TEST_CHUTE_3_COINS) {
-    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_RESET);  
+    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_RESET);
   } else {
     byte curSwitch = BSOS_PullFirstFromSwitchStack();
 
@@ -877,7 +877,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
     if (curStateChanged) {
       for (int count=0; count<4; count++) {
         BSOS_SetDisplay(count, 0);
-        BSOS_SetDisplayBlank(count, 0x00);        
+        BSOS_SetDisplayBlank(count, 0x00);
       }
       BSOS_SetDisplayCredits(abs(curState)-4.);
       BSOS_SetDisplayBallInPlay(0, false);
@@ -968,7 +968,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
         CurrentAdjustmentByte = (byte *)&OneSpecialPerBall;
         CurrentAdjustmentStorageByte = EEPROM_ONE_SPECIAL_PER_BALL_BYTE;
       } else {
-        returnState = MACHINE_STATE_ADJUST_REBOOT;     
+        returnState = MACHINE_STATE_ADJUST_REBOOT;
       }
     }
 
@@ -1003,14 +1003,14 @@ int RunSelfTest(int curState, boolean curStateChanged) {
         *CurrentAdjustmentUL = curVal;
         if (CurrentAdjustmentStorageByte) BSOS_WriteULToEEProm(CurrentAdjustmentStorageByte, curVal);
       }
-      
+
       if (curState==MACHINE_STATE_ADJUST_REBOOT) {
-        // If any variables have been set to non-override (99), return 
+        // If any variables have been set to non-override (99), return
         // them to dip switch settings
         // Balls Per Game, Player Loses On Ties, Novelty Scoring, Award Score
         DecodeDIPSwitchParameters();
         GetStoredParameters();
-        returnState = MACHINE_STATE_ATTRACT;     
+        returnState = MACHINE_STATE_ATTRACT;
       }
     }
 
@@ -1071,7 +1071,7 @@ int CountdownBonus(boolean curStateChanged) {
       returnState = MACHINE_STATE_BALL_OVER;
     }
     ShowBonusOnTree(Bonus, 0);
-    LastTimeInfoUpdated = CurrentTime;    
+    LastTimeInfoUpdated = CurrentTime;
   }
 
   return returnState;
@@ -1089,7 +1089,7 @@ void CalculateAndShowBetSweep(byte minBet, byte maxBet) {
       // bet is ramping down
       timeRunning = 9 - timeRunning;
       gap = (timeRunning*gap)/4;
-    }    
+    }
   }
   CurrentSweepingBet = minBet + ((byte)gap);
   if (CurrentSweepingBet>20) CurrentSweepingBet = 20;
@@ -1113,7 +1113,7 @@ void SetTallyLamps(byte tally, boolean withAce, byte topLamp) {
   BSOS_SetLampState(topLamp+1, ((tally==20)||(withAce&&tally==10))?1:0, 0, (withAce&&tally==10)?750:0);
   BSOS_SetLampState(topLamp, ((tally>=21)||(withAce&&tally==11))?1:0, 0, ((tally>21)?250:0) + ((withAce&&tally==11)?500:0));
 
-/*  
+/*
   if (tally==0) {
     BSOS_SetLampState(topLamp+4, 0);
   } else if (tally>21) {
@@ -1137,7 +1137,7 @@ void SetTallyLamps(byte tally, boolean withAce, byte topLamp) {
 //      BSOS_SetLampState(topLamp, (tally==11), 0, 750);
     }
   }
-*/  
+*/
 }
 
 void SlideCards(unsigned long slideStart, byte displayNum, byte top, byte tally, boolean hasAce) {
@@ -1159,21 +1159,21 @@ void SlideCards(unsigned long slideStart, byte displayNum, byte top, byte tally,
 
     OverridePlayerDisplays(displayNum);
     BSOS_SetDisplay(displayNum, bottomDigit);
-    BSOS_SetDisplayBlank(displayNum, blank); 
+    BSOS_SetDisplayBlank(displayNum, blank);
   } else {
     unsigned long newValue = top + tally;
     if (hasAce) {
       if ((elapsed/500)%2 && newValue<11) newValue += 10;
       OverridePlayerDisplays(displayNum);
       BSOS_SetDisplay(displayNum, newValue);
-      BSOS_SetDisplayBlank(displayNum, 0x30); 
+      BSOS_SetDisplayBlank(displayNum, 0x30);
     } else {
       OverridePlayerDisplays(displayNum);
       BSOS_SetDisplay(displayNum, newValue);
-      BSOS_SetDisplayBlank(displayNum, 0x30); 
+      BSOS_SetDisplayBlank(displayNum, 0x30);
     }
   }
-  
+
 }
 
 byte cardShown = 0;
@@ -1247,7 +1247,7 @@ boolean ShowCards() {
       } else {
         Natural21 = false;
       }
-      
+
       SetTallyLamps(PlayersTally, PlayerHasAce, PLAYER_21);
       if (DealersTopCard<6 && DealersTopCard!=0) {
         SetTallyLamps(16, false, DEALER_21);
@@ -1271,7 +1271,7 @@ void SweepSaucerLights(boolean allOff = false) {
   BSOS_SetLampState(B_3X_5XFEATURE, (SaucerLightIndex==3)?1:0);
   BSOS_SetLampState(B_5X_BONUS, (SaucerLightIndex==4)?1:0);
   BSOS_SetLampState(EXTRA_BALL, (SaucerLightIndex==4)?1:0);
-  
+
 }
 
 void SetBonusXLights(byte BonusX) {
@@ -1292,7 +1292,7 @@ void SweepSpinnerLights(boolean allOff = false) {
     BSOS_SetLampState(BONUS_1+count, (id==(count+1)||id==(count+2)), (id==(count+2)));
   }
   BSOS_SetLampState(BONUS_1+9, (id==(10)||id==1), (id==1));
-  
+
 }
 
 void ShowSpinnerLights(byte lightNum, boolean single=true) {
@@ -1315,7 +1315,7 @@ boolean ShowPlayerHit() {
       if (PlayersTopCard==1) PlayerHasAce = true;
       PlayersTally += PlayersTopCard;
       PlayersTopCard = 0;
-      SetTallyLamps(PlayersTally, PlayerHasAce, PLAYER_21);      
+      SetTallyLamps(PlayersTally, PlayerHasAce, PLAYER_21);
       slideDone = true;
     }
     LastTimeInfoUpdated = CurrentTime;
@@ -1326,7 +1326,7 @@ boolean ShowPlayerHit() {
 
 
 void CheckHighScores() {
-  
+
 
   unsigned long highestScore = 0;
   int highScorePlayerNum = 0;
@@ -1357,7 +1357,7 @@ void CheckHighScores() {
 
     for (int count=0; count<3; count++) {
       BSOS_PushToTimedSolenoidStack(SOL_KNOCKER, 3, CurrentTime + count*300, true);
-    }    
+    }
   }
 }
 
@@ -1375,8 +1375,8 @@ byte GetNextCard() {
   byte nextCard;
   byte cardByte = Deck[deckPtr/2];
   if ((deckPtr%2)==0) nextCard = cardByte&0x0F;
-  else nextCard = cardByte/16;  
-  
+  else nextCard = cardByte/16;
+
   if (nextCard>10) nextCard = 10;
 
   PlayersDeckPtr[playerNum]+=1;
@@ -1444,7 +1444,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
       Serial.write("Entering Attract Mode\n\r");
     }
     for (int count=0; count<4; count++) {
-      BSOS_SetDisplayBlank(count, 0x00);     
+      BSOS_SetDisplayBlank(count, 0x00);
     }
     BSOS_SetDisplayCredits(Credits, CreditDisplay);
     BSOS_SetDisplayBallInPlay(0);
@@ -1465,7 +1465,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
       BSOS_SetDisplayBallInPlay(0, true);
     }
     AttractLastHeadMode = 1;
-    
+
   } else {
     if (AttractLastHeadMode!=2) {
       BSOS_SetLampState(HIGH_SCORE, 0);
@@ -1477,7 +1477,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
           ShowPlayerDisplays();
         } else {
           BSOS_SetDisplayBlank(count, 0x30);
-          BSOS_SetDisplay(count, 0);          
+          BSOS_SetDisplay(count, 0);
         }
       }
     }
@@ -1488,7 +1488,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
 
   if ((CurrentTime/6000)%3==0) {
     // This attract mode shows the skill shot on top lanes
-    // and sweeps the bonus tree  
+    // and sweeps the bonus tree
     if (AttractLastPlayfieldMode!=1) {
       if (Credits) BSOS_SetLampState(CREDIT_LIGHT, 1);
       for (int count=0; count<5; count++) {
@@ -1508,7 +1508,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
     BSOS_SetLampState(RED_BUMPER, bumper==0);
     BSOS_SetLampState(SPADE_BUMPER, bumper==1);
     BSOS_SetLampState(CLUB_BUMPER, bumper==2);
-    
+
     AttractLastPlayfieldMode = 1;
   } else if ((CurrentTime/6000)%3==1) {
     if (AttractLastPlayfieldMode!=2) {
@@ -1531,7 +1531,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
 
       BSOS_SetLampState(LEFT_OUTLANE, 1, 0, 400);
       BSOS_SetLampState(RIGHT_OUTLANE, 1, 0, 400);
-  
+
       BSOS_SetLampState(SPINNER_1000, 1, 0, 170);
       BSOS_SetLampState(PLAYER_WINS, 1, 0, 170);
       SweepSpinnerLights(true);
@@ -1623,9 +1623,9 @@ boolean RunEndOfRound() {
     boolean dealerHasToHit = false;
     unsigned long elapsedTime = CurrentTime-BettingModeStart;
     if (DealerHasAce) {
-      if (totalHand<7 || (totalHand>11 && totalHand<17)) dealerHasToHit = true; 
+      if (totalHand<7 || (totalHand>11 && totalHand<17)) dealerHasToHit = true;
     } else {
-      if (totalHand<17) dealerHasToHit = true;      
+      if (totalHand<17) dealerHasToHit = true;
     }
 
     if (elapsedTime<2000) {
@@ -1657,21 +1657,21 @@ boolean RunEndOfRound() {
         BSOS_SetDisplay(playersDisplay, PlayersTally);
         BSOS_SetDisplayBlank(playersDisplay, 0x30);
         BSOS_SetDisplay(dealersDisplay, DealersTally);
-        BSOS_SetDisplayBlank(dealersDisplay, 0x30);      
+        BSOS_SetDisplayBlank(dealersDisplay, 0x30);
         SetTallyLamps(PlayersTally, false, PLAYER_21);
         SetTallyLamps(DealersTally, false, DEALER_21);
       } else {
         if (!PlayerWinsHasBeenShown && playerWins) {
           PlayerWinsHasBeenShown = true;
-          BSOS_SetLampState(PLAYER_WINS, playerWins, 0, 220);        
+          BSOS_SetLampState(PLAYER_WINS, playerWins, 0, 220);
           if (playerWins) {
             PlaySoundEffect(SOUND_EFFECT_PLAYER_WINS);
             IncreaseBonusX();
             SetBonusXLights(BonusX);
           }
-        }        
+        }
       }
-    } else if (elapsedTime<4000) {      
+    } else if (elapsedTime<4000) {
       if (CurrentSweepingBet>0) {
         if (playerWins) {
           AddToBonus(1);
@@ -1684,17 +1684,17 @@ boolean RunEndOfRound() {
         BettingModeStart += 250;
       }
     } else {
-      if (BSOS_ReadSingleSwitchState(SW_SAUCER)) BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 5, 100); 
+      if (BSOS_ReadSingleSwitchState(SW_SAUCER)) BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 5, 100);
       SetTallyLamps(0, false, PLAYER_21);
       SetTallyLamps(0, false, DEALER_21);
-      endOfRoundDone = true;     
+      endOfRoundDone = true;
       UsingTreeToShowBet = false;
-      BSOS_SetLampState(PLAYER_WINS, 0);      
+      BSOS_SetLampState(PLAYER_WINS, 0);
     }
 
     LastTimeInfoUpdated = CurrentTime;
   }
-  
+
   return endOfRoundDone;
 }
 
@@ -1707,10 +1707,10 @@ boolean RunBonusCollect() {
       Bonus -= 1;
       CurrentScores[CurrentPlayer] += 5000;
       ShowBonusOnTree(Bonus, 0);
-    } 
+    }
     if (Bonus==0) {
       doneWithCollect = true;
-      if (BSOS_ReadSingleSwitchState(SW_SAUCER)) BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 5, 100); 
+      if (BSOS_ReadSingleSwitchState(SW_SAUCER)) BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 5, 100);
       UsingTreeToShowBet = false;
       BSOS_SetLampState(PLAYER_WINS, 0);
       BonusX = 6;
@@ -1737,14 +1737,14 @@ boolean PayoutNatural() {
       SetBonusXLights(BonusX);
       SetTallyLamps(21, false, PLAYER_21);
       BSOS_SetDisplay(playersDisplay, 21);
-      BSOS_SetLampState(PLAYER_WINS, 1);      
+      BSOS_SetLampState(PLAYER_WINS, 1);
     }
 
     if ((CurrentTime-BettingModeStart)<3000) {
       if (((CurrentTime-BettingModeStart)/125)%2==0) {
         BSOS_SetDisplayBlank(playersDisplay, 0x00);
       } else {
-        BSOS_SetDisplayBlank(playersDisplay, 0x30);        
+        BSOS_SetDisplayBlank(playersDisplay, 0x30);
       }
     } else if ((CurrentTime-BettingModeStart)<3500) {
       if (CurrentSweepingBet>0) {
@@ -1752,14 +1752,14 @@ boolean PayoutNatural() {
         PlaySoundEffect(SOUND_EFFECT_BONUS_ADD);
         CurrentSweepingBet -= 1;
         BettingModeStart += 250;
-      }      
+      }
     } else {
       payoutDone = true;
       SetTallyLamps(0, false, PLAYER_21);
       SetTallyLamps(0, false, DEALER_21);
-      BSOS_SetLampState(PLAYER_WINS, 0);      
+      BSOS_SetLampState(PLAYER_WINS, 0);
     }
-    
+
     LastTimeInfoUpdated = CurrentTime;
   }
 
@@ -1780,7 +1780,7 @@ boolean PayoutNatural() {
 //    If (NoHitsOver16) is set, the hit button is disabled for scores>=17
 //    "Change Player's Hand" hits (adds a card)
 //      If player busts:
-//        Bet is lost, and BettingStage goes back to BETTING_STAGE_BUILDING_STAKES 
+//        Bet is lost, and BettingStage goes back to BETTING_STAGE_BUILDING_STAKES
 //      if player hits spinner, SurrenderSpins increases
 //        if SurrenderSpins>20, 1/2 of bet is surrendered
 //    "Change Dealer's Hand" ShowDealerCount times will show the dealer's hidden card
@@ -1793,7 +1793,7 @@ boolean PayoutNatural() {
 //    If Player's hand < Dealer's hand
 //      +5000
 //      Bonus -= Bet
-//    Return to BETTING_STAGE_BUILDING_STAKES 
+//    Return to BETTING_STAGE_BUILDING_STAKES
 
 
 int NormalGamePlay() {
@@ -1824,7 +1824,7 @@ int NormalGamePlay() {
 
   if (BallFirstSwitchHitTime!=0 && Bonus>=1 && BettingStage==BETTING_STAGE_BUILDING_STAKES) {
     // We're entering the betting/hand mode
-    BettingStage = BETTING_STAGE_BET_SWEEP;     
+    BettingStage = BETTING_STAGE_BET_SWEEP;
     BettingModeStart = CurrentTime;
     LastTimeInfoUpdated = 0;
     ClearOverridePlayerDisplays();
@@ -1836,13 +1836,13 @@ int NormalGamePlay() {
     CalculateAndShowBetSweep(1, (Bonus>1)?(Bonus-1):1);
     if ( BonusX<7 && (((CurrentTime-BettingModeStart)/2000)%2)==0 ) SweepSaucerLights();
     else SetBonusXLights(BonusX);
-  }    
+  }
 
   if (BettingStage==BETTING_STAGE_DEAL) {
     SweepSaucerLights(true);
     SetBonusXLights(BonusX);
     PlayersTopCard = GetNextCard();
-    DealersTopCard = GetNextCard();    
+    DealersTopCard = GetNextCard();
     PlayersTally = GetNextCard();
     DealersTally = GetNextCard();
     PlayerHasAce = (PlayersTopCard==1 || PlayersTally==1);
@@ -1860,7 +1860,7 @@ int NormalGamePlay() {
     }
     if (ShowCards()) {
       SetBonusXLights(BonusX);
-      ShowDealersCardCountdown = NumberOfDealerHitsToShow;      
+      ShowDealersCardCountdown = NumberOfDealerHitsToShow;
       BettingStage = BETTING_STAGE_WAIT_FOR_COLLECT;
       BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 5, 100);
       PlayerHits = false;
@@ -1875,7 +1875,7 @@ int NormalGamePlay() {
   if (BettingStage==BETTING_STAGE_WAIT_FOR_COLLECT) {
     if (BettingModeStart==0) {
       if (!PlayerHits) {
-               
+
         // Player hasn't hit yet, so we need to toggle aces (if any)
         if (PlayerHasAce) {
           ToggleAce();
@@ -1891,7 +1891,7 @@ int NormalGamePlay() {
 
         // Need to pulse the Player Wins light based on likelihood of win
         ShowPlayerWinsPulse();
-        
+
         // Alert the player that they can finish the hand or surrender
         if (ShowingSurrenderSpins==0 || (CurrentTime-ShowingSurrenderSpins)>5000) {
           SweepSpinnerLights();
@@ -1906,7 +1906,7 @@ int NormalGamePlay() {
           UsingTreeToShowBet = true;
           ShowSpinnerLights(SurrenderSpins, false);
         }
-        
+
       } else {
         if (BettingModeStart==0) {
           PlayersTopCard = GetNextCard();
@@ -1955,7 +1955,7 @@ int NormalGamePlay() {
   if (BettingStage==BETTING_STAGE_WAIT_FOR_BONUS_COLLECT) {
     if (BettingModeStart==0) {
       LastTimeInfoUpdated = 0;
-      BettingModeStart = CurrentTime;     
+      BettingModeStart = CurrentTime;
       SweepSpinnerLights(true);
       ShowPlayerWinsPulse(true);
       ClearOverridePlayerDisplays();
@@ -1966,7 +1966,7 @@ int NormalGamePlay() {
     if (NumSecondsForBonusCollect!=0) {
       if (((CurrentTime-BettingModeStart)/1000)>((unsigned long)NumSecondsForBonusCollect-10)) timeToWaitBetweenBeats = 500;
     }
-    
+
     if ((CurrentTime-LastTimeInfoUpdated)>timeToWaitBetweenBeats) {
       if (SuitsComplete[CurrentPlayer]==0xFF) BSOS_SetLampState(PLAYER_WINS, 1, 0, 100);
       else BSOS_SetLampState(PLAYER_WINS, 0);
@@ -1986,24 +1986,24 @@ int NormalGamePlay() {
       BettingStage = BETTING_STAGE_BUILDING_STAKES;
       SuitsComplete[CurrentPlayer] = 0;
       ShowSuitsComplete(SuitsComplete[CurrentPlayer]);
-    }    
+    }
   }
-  
+
   // Check to see if ball is in the outhole
   if (BSOS_ReadSingleSwitchState(SW_OUTHOLE)) {
     if (BallTimeInTrough==0) {
       BallTimeInTrough = CurrentTime;
     } else {
-      // Make sure the ball stays on the sensor for at least 
+      // Make sure the ball stays on the sensor for at least
       // 0.5 seconds to be sure that it's not bouncing
       if ((CurrentTime-BallTimeInTrough)>500) {
 
         if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
-        
+
         // if we haven't used the ball save, and we're under the time limit, then save the ball
-        if (  !BallSaveUsed && 
+        if (  !BallSaveUsed &&
               ((CurrentTime-BallFirstSwitchHitTime)/1000)<((unsigned long)BallSaveNumSeconds) ) {
-        
+
           BSOS_PushToTimedSolenoidStack(SOL_OUTHOLE, 4, CurrentTime + 100);
           if (BallFirstSwitchHitTime>0) {
             BallSaveUsed = true;
@@ -2012,7 +2012,7 @@ int NormalGamePlay() {
           }
           BallTimeInTrough = CurrentTime;
 
-          returnState = MACHINE_STATE_NORMAL_GAMEPLAY;          
+          returnState = MACHINE_STATE_NORMAL_GAMEPLAY;
         } else {
           SetTallyLamps(0, false, PLAYER_21);
           SetTallyLamps(0, false, DEALER_21);
@@ -2054,7 +2054,7 @@ byte ScoreMatches = 0;
 
 int ShowMatchSequence(boolean curStateChanged) {
   if (!MatchFeature) return MACHINE_STATE_ATTRACT;
-  
+
   if (curStateChanged) {
     MatchSequenceStartTime = CurrentTime;
     MatchDelay = 1500;
@@ -2100,14 +2100,14 @@ int ShowMatchSequence(boolean curStateChanged) {
       if (NumMatchSpins==44) {
         MatchDelay += 5000;
       }
-    }      
+    }
   }
 
   if (NumMatchSpins>43) {
     if (CurrentTime>(MatchSequenceStartTime + MatchDelay)) {
       ClearOverridePlayerDisplays();
       return MACHINE_STATE_ATTRACT;
-    }    
+    }
   }
 
   for (int count=0; count<4; count++) {
@@ -2121,7 +2121,7 @@ int ShowMatchSequence(boolean curStateChanged) {
     }
   }
 
-  
+
   return MACHINE_STATE_MATCH_MODE;
 }
 
@@ -2146,14 +2146,14 @@ void HandleBumperSwitch(byte switchNum) {
     CurrentScores[CurrentPlayer] += 10;
     PlaySoundEffect(SOUND_EFFECT_BUMPER_10);
   }
-  if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;        
+  if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
 }
 
 void HandleTopLaneSwitch(byte switchNum) {
 
   byte suitBitMask = 0x08>>(switchNum-SW_HEARTS);
   if (CurrentSkillShotSuit==((switchNum-SW_HEARTS)+1)) {
-    CurrentScores[CurrentPlayer] += 1000;    
+    CurrentScores[CurrentPlayer] += 1000;
     AddToBonus(2);
     PlaySoundEffect(SOUND_EFFECT_SKILL_SHOT);
     if (SuitsComplete[CurrentPlayer]<0x0F) {
@@ -2163,7 +2163,7 @@ void HandleTopLaneSwitch(byte switchNum) {
     } else {
       if ((switchNum-SW_HEARTS)%2) SuitsComplete[CurrentPlayer] |= 0x50;
       else SuitsComplete[CurrentPlayer] |= 0xA0;
-      CurrentScores[CurrentPlayer] += 1000;    
+      CurrentScores[CurrentPlayer] += 1000;
       AddToBonus(2);
     }
   } else {
@@ -2176,7 +2176,7 @@ void HandleTopLaneSwitch(byte switchNum) {
   AddToBonus(1);
   ShowSuitsComplete(SuitsComplete[CurrentPlayer]);
   if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
-              
+
 }
 
 
@@ -2185,10 +2185,10 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
   int returnState = curState;
   unsigned long scoreAtTop = CurrentScores[CurrentPlayer];
   byte bonusAtTop = Bonus;
-  
+
   // Very first time into gameplay loop
   if (curState==MACHINE_STATE_INIT_GAMEPLAY) {
-    returnState = InitGamePlay(curStateChanged);    
+    returnState = InitGamePlay(curStateChanged);
   } else if (curState==MACHINE_STATE_INIT_NEW_BALL) {
     returnState = InitNewBall(curStateChanged, CurrentPlayer, CurrentBallInPlay);
   } else if (curState==MACHINE_STATE_NORMAL_GAMEPLAY) {
@@ -2208,22 +2208,22 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
         CurrentPlayer = 0;
         CurrentBallInPlay+=1;
       }
-       
+
       if (CurrentBallInPlay>BallsPerGame) {
         CheckHighScores();
         PlaySoundEffect(SOUND_EFFECT_GAME_OVER);
         SetPlayerLamps(0);
         ClearOverridePlayerDisplays();
         ShowPlayerWinsPulse(true);
-    
+
         returnState = MACHINE_STATE_MATCH_MODE;
       } else {
         PlaySoundEffect(SOUND_EFFECT_BALL_OVER);
         returnState = MACHINE_STATE_INIT_NEW_BALL;
       }
-    }    
+    }
   } else if (curState==MACHINE_STATE_MATCH_MODE) {
-    returnState = ShowMatchSequence(curStateChanged);    
+    returnState = ShowMatchSequence(curStateChanged);
   } else {
     returnState = MACHINE_STATE_ATTRACT;
   }
@@ -2260,19 +2260,19 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
             if (RegularSpins>9) RegularSpins = 0;
             ShowSpinnerLights(RegularSpins);
           }
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;                
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
         break;
         case SW_SAUCER:
           SweepSaucerLights(true);
           CurrentScores[CurrentPlayer] += 5000;
           // Saucer is hit as part of the skill shot!
           if (BallFirstSwitchHitTime==0) {
-            SuitsComplete[CurrentPlayer] |= 0x0F;          
+            SuitsComplete[CurrentPlayer] |= 0x0F;
             ShowSuitsComplete(SuitsComplete[CurrentPlayer]);
             PlaySoundEffect(SOUND_EFFECT_SKILL_SHOT);
             BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 6, CurrentTime + 1000);
           }
-  
+
           if (BettingStage==BETTING_STAGE_BUILDING_STAKES) {
             PlaySoundEffect(SOUND_EFFECT_RANDOM_SAUCER);
             BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 6, CurrentTime + 500);
@@ -2296,7 +2296,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
           } else if (BettingStage==BETTING_STAGE_NATURAL_21) {
             BSOS_PushToTimedSolenoidStack(SOL_SAUCER, 6, CurrentTime);
           }
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;        
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
         break;
         case SW_CLUB_BUMPER:
         case SW_SPADE_BUMPER:
@@ -2326,13 +2326,13 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
               BSOS_SetDisplay(2 + (1-(CurrentPlayer%2)), ((unsigned long)DealersTopCard)*10000 + (unsigned long)DealersTally);
             }
           }
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;        
-        break; 
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
+        break;
         case SW_LEFT_SLING:
         case SW_RIGHT_SLING:
         case SW_10_PT_SWITCH:
           CurrentScores[CurrentPlayer] += 10;
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;        
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
         break;
         case SW_LEFT_OUTLANE:
           if (LeftOutlaneLit) {
@@ -2342,7 +2342,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
             CurrentScores[CurrentPlayer] += 100;
             PlaySoundEffect(SOUND_EFFECT_OUTLANE_UNLIT);
           }
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;        
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
         break;
         case SW_RIGHT_OUTLANE:
           if (RightOutlaneLit) {
@@ -2352,19 +2352,19 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
             CurrentScores[CurrentPlayer] += 100;
             PlaySoundEffect(SOUND_EFFECT_OUTLANE_UNLIT);
           }
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;        
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
         break;
         case SW_INLANE:
           CurrentScores[CurrentPlayer] += 1000;
           AddToBonus(1);
           PlaySoundEffect(SOUND_EFFECT_INLANE);
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;                
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
         break;
         case SW_BONUS_ROLLOVER:
           CurrentScores[CurrentPlayer] += 1000;
           AddToBonus(1);
           PlaySoundEffect(SOUND_EFFECT_BONUS_ROLLOVER);
-          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;                
+          if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
         break;
         case SW_CREDIT_RESET:
           if (CurrentBallInPlay<2) {
@@ -2384,7 +2384,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
           if (DEBUG_MESSAGES) {
             Serial.write("Start game button pressed\n\r");
           }
-        break;        
+        break;
         case SW_TILT:
           // This should be debounced
           if (CurrentTime-LastTiltWarningTime > TILT_WARNING_DEBOUNCE_TIME) {
@@ -2422,14 +2422,14 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
     }
   }
 
-  
+
   ShowPlayerDisplays(scoreAtTop!=CurrentScores[CurrentPlayer]);
 
   boolean goBackToShowingBonus = false;
   if (UsingTreeToShowBet) {
     if (CurrentTime>ShowBetUntilThisTime) {
       UsingTreeToShowBet = false;
-      goBackToShowingBonus = true;    
+      goBackToShowingBonus = true;
     }
   }
 
@@ -2438,11 +2438,11 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
   }
 
   if (!BSOS_ReadSingleSwitchState(SW_SAUCER)) {
-    LastTimeSaucerEmpty = CurrentTime;    
+    LastTimeSaucerEmpty = CurrentTime;
   } else if ((CurrentTime-LastTimeSaucerEmpty)>30000) {
     BSOS_PushToSolenoidStack(SOL_SAUCER, 5, true);
-    LastTimeSaucerEmpty = CurrentTime;    
-  }  
+    LastTimeSaucerEmpty = CurrentTime;
+  }
 
   return returnState;
 }

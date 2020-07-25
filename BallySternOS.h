@@ -42,7 +42,7 @@ struct PlayfieldAndCabinetSwitch {
 // J5       DEFINITION   ARDUINO
 // n/a      IRQ           2
 // PIN 32 - NOT USED
-// PIN 31 - GND           GND  
+// PIN 31 - GND           GND
 // PIN 30 - +5V           VIN
 // PIN 29 - Not Used
 // PIN 28 - Ext Mem
@@ -64,17 +64,17 @@ struct PlayfieldAndCabinetSwitch {
 // PIN 12 - A10           GND
 // PIN 11 - A11           GND
 // PIN 10 - A12 *         GND
-// PIN 9 - A13            
+// PIN 9 - A13
 // PIN 8 - D0             5
 // PIN 7 - D1             6
-// PIN 6 - D2             7 
+// PIN 6 - D2             7
 // PIN 5 - D3             8
 // PIN 4 - D4             9
 // PIN 3 - D5             10
 // PIN 2 - D6             11
 // PIN 1 - D7             12
 
-// PIA @ U11 = A4, A7, !A9, !A12      
+// PIA @ U11 = A4, A7, !A9, !A12
 // PIA @ U10 = A3, A7, !A9, !A12
 
 
@@ -86,7 +86,7 @@ struct PlayfieldAndCabinetSwitch {
 #define CONTSOL_DISABLE_FLIPPERS      0x40
 #define CONTSOL_DISABLE_COIN_LOCKOUT  0x20
 
-// This define needs to be set for the number of loops 
+// This define needs to be set for the number of loops
 // needed to get a delay of 80 us
 // So, set it to (0.000080) / (1/Clock Frequency)
 // Assuming Frequency = 500kHz,  40 = (0.000080) / (1/500000)
@@ -170,7 +170,7 @@ byte BSOS_DataRead(int address);
   int NumGameSwitches = 0;
   int NumGamePrioritySwitches = 0;
 //  int NumGameLights = 0;
-  
+
 //  PlayfieldLight *GameLights = NULL;
   PlayfieldAndCabinetSwitch *GameSwitches = NULL;
 #endif

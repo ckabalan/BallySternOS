@@ -69,19 +69,19 @@ void setup() {
     if (digitalRead(A5)) sawHigh = true;
     else sawLow = true;
   }
-  // If we saw both a high and low signal, then someone is toggling the 
+  // If we saw both a high and low signal, then someone is toggling the
   // VMA line, so we should hang here forever (until reset)
   if (sawHigh && sawLow) {
     while (1);
   }
-      
+
   // Tell the OS about game-specific lights and switches
   BSOS_SetupGameSwitches(NUM_SWITCHES_WITH_TRIGGERS, NUM_PRIORITY_SWITCHES_WITH_TRIGGERS, TriggeredSwitches);
 
   if (DEBUG_MESSAGES) {
     Serial.write("Attempting to initialize the MPU\n");
   }
- 
+
   // Set up the chips and interrupts
   BSOS_InitializeMPU();
   BSOS_DisableSolenoidStack();
@@ -151,17 +151,17 @@ boolean AddPlayer() {
 }
 
 
-int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {  
+int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {
 
   if (curStateChanged) {
     BallFirstSwitchHitTime = 0;
     SamePlayerShootsAgain = false;
 
     BSOS_SetDisableFlippers(false);
-    BSOS_EnableSolenoidStack(); 
+    BSOS_EnableSolenoidStack();
     BSOS_SetDisplayCredits(Credits, true);
     SetPlayerLamps(playerNum+1, 500);
-    
+
     if (BSOS_ReadSingleSwitchState(SW_OUTHOLE)) {
       BSOS_PushToTimedSolenoidStack(SOL_OUTHOLE, 4, CurrentTime + 100);
     }
@@ -179,15 +179,15 @@ int InitNewBall(bool curStateChanged, byte playerNum, int ballNum) {
 //      BSOS_SetLampState(HEAD_SAME_PLAYER, 1, 0, 500);
     }
   }
-  
-  // We should only consider the ball initialized when 
+
+  // We should only consider the ball initialized when
   // the ball is no longer triggering the SW_OUTHOLE
   if (BSOS_ReadSingleSwitchState(SW_OUTHOLE)) {
     return MACHINE_STATE_INIT_NEW_BALL;
   } else {
     return MACHINE_STATE_NORMAL_GAMEPLAY;
   }
-  
+
 }
 
 
@@ -199,7 +199,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
   // Any state that's greater than CHUTE_3 is handled by the Base Self-test code
   // Any that's less, is machine specific, so we handle it here.
   if (curState>=MACHINE_STATE_TEST_CHUTE_3_COINS) {
-    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_RESET);  
+    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_RESET);
   } else {
     returnState = MACHINE_STATE_ATTRACT;
   }
@@ -225,7 +225,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
       Serial.write("Entering Attract Mode\n\r");
     }
     for (int count=0; count<4; count++) {
-      BSOS_SetDisplayBlank(count, 0x00);     
+      BSOS_SetDisplayBlank(count, 0x00);
     }
     BSOS_SetDisplayCredits(Credits);
     BSOS_SetDisplayBallInPlay(0);
@@ -240,7 +240,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
       BSOS_SetLampState(HIGH_SCORE, 1, 0, 250);
       BSOS_SetLampState(GAME_OVER, 0);
       SetPlayerLamps(0);
-  
+
       for (int count=0; count<4; count++) {
         BSOS_SetDisplay(count, HighScore, true, 2);
       }
@@ -248,7 +248,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
       BSOS_SetDisplayBallInPlay(0, true);
     }
     AttractLastHeadMode = 1;
-    
+
   } else {
     if (AttractLastHeadMode!=2) {
       BSOS_SetLampState(HIGH_SCORE, 0);
@@ -258,14 +258,14 @@ int RunAttractMode(int curState, boolean curStateChanged) {
       for (int count=0; count<4; count++) {
         if (CurrentNumPlayers>0) {
           if (count<CurrentNumPlayers) {
-            BSOS_SetDisplay(count, CurrentScores[count], true, 2); 
+            BSOS_SetDisplay(count, CurrentScores[count], true, 2);
           } else {
             BSOS_SetDisplayBlank(count, 0x00);
-            BSOS_SetDisplay(count, 0);          
-          }          
+            BSOS_SetDisplay(count, 0);
+          }
         } else {
           BSOS_SetDisplayBlank(count, 0x30);
-          BSOS_SetDisplay(count, 0);          
+          BSOS_SetDisplay(count, 0);
         }
       }
     }
@@ -273,11 +273,11 @@ int RunAttractMode(int curState, boolean curStateChanged) {
     AttractLastHeadMode = 2;
   }
 
-  if ((CurrentTime/10000)%3==0) {  
+  if ((CurrentTime/10000)%3==0) {
     if (AttractLastPlayfieldMode!=1) {
       BSOS_TurnOffAllLamps();
     }
-    
+
     AttractLastPlayfieldMode = 1;
   } else {
     if (AttractLastPlayfieldMode!=2) {
@@ -327,22 +327,22 @@ int NormalGamePlay() {
     }
   }
 
-  
+
   // Check to see if ball is in the outhole
   if (BSOS_ReadSingleSwitchState(SW_OUTHOLE)) {
     if (BallTimeInTrough==0) {
       BallTimeInTrough = CurrentTime;
     } else {
-      // Make sure the ball stays on the sensor for at least 
+      // Make sure the ball stays on the sensor for at least
       // 0.5 seconds to be sure that it's not bouncing
       if ((CurrentTime-BallTimeInTrough)>500) {
 
         if (BallFirstSwitchHitTime==0) BallFirstSwitchHitTime = CurrentTime;
-        
+
         // if we haven't used the ball save, and we're under the time limit, then save the ball
-        if (  !BallSaveUsed && 
+        if (  !BallSaveUsed &&
               ((CurrentTime-BallFirstSwitchHitTime)/1000)<((unsigned long)BallSaveNumSeconds) ) {
-        
+
           BSOS_PushToTimedSolenoidStack(SOL_OUTHOLE, 4, CurrentTime + 100);
           if (BallFirstSwitchHitTime>0) {
             BallSaveUsed = true;
@@ -351,7 +351,7 @@ int NormalGamePlay() {
           }
           BallTimeInTrough = CurrentTime;
 
-          returnState = MACHINE_STATE_NORMAL_GAMEPLAY;          
+          returnState = MACHINE_STATE_NORMAL_GAMEPLAY;
         } else {
           returnState = MACHINE_STATE_COUNTDOWN_BONUS;
         }
@@ -396,7 +396,7 @@ int InitGamePlay(boolean curStateChanged) {
       if (DEBUG_MESSAGES) {
         Serial.write("Ball is not in trough - firing stuff and giving it a chance to come back\n");
       }
-      
+
       // Otherwise, let's see if it's in a spot where it could get trapped,
       // for instance, a saucer (if the game has one)
 //      BSOS_PushToSolenoidStack(SOL_SAUCER, 5, true);
@@ -419,17 +419,17 @@ int InitGamePlay(boolean curStateChanged) {
     BSOS_SetDisableFlippers(false);
     returnState = MACHINE_STATE_INIT_NEW_BALL;
   }
-  
-  return returnState;  
+
+  return returnState;
 }
 
 int RunGamePlayMode(int curState, boolean curStateChanged) {
   int returnState = curState;
   unsigned long scoreAtTop = CurrentScores[CurrentPlayer];
-  
+
   // Very first time into gameplay loop
   if (curState==MACHINE_STATE_INIT_GAMEPLAY) {
-    returnState = InitGamePlay(curStateChanged);    
+    returnState = InitGamePlay(curStateChanged);
   } else if (curState==MACHINE_STATE_INIT_NEW_BALL) {
     returnState = InitNewBall(curStateChanged, CurrentPlayer, CurrentBallInPlay);
   } else if (curState==MACHINE_STATE_NORMAL_GAMEPLAY) {
@@ -437,7 +437,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
   } else if (curState==MACHINE_STATE_COUNTDOWN_BONUS) {
 //    returnState = CountdownBonus(curStateChanged);
     returnState = MACHINE_STATE_BALL_OVER;
-  } else if (curState==MACHINE_STATE_BALL_OVER) {    
+  } else if (curState==MACHINE_STATE_BALL_OVER) {
     if (SamePlayerShootsAgain) {
       returnState = MACHINE_STATE_INIT_NEW_BALL;
     } else {
@@ -446,7 +446,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
         CurrentPlayer = 0;
         CurrentBallInPlay+=1;
       }
-        
+
       if (CurrentBallInPlay>BallsPerGame) {
 //        CheckHighScores();
 //        PlaySoundEffect(SOUND_EFFECT_GAME_OVER);
@@ -458,7 +458,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
         returnState = MACHINE_STATE_MATCH_MODE;
       }
       else returnState = MACHINE_STATE_INIT_NEW_BALL;
-    }    
+    }
   } else if (curState==MACHINE_STATE_MATCH_MODE) {
     returnState = MACHINE_STATE_GAME_OVER;
   } else {
@@ -472,7 +472,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
       case SW_SELF_TEST_SWITCH:
         returnState = MACHINE_STATE_TEST_LIGHTS;
         SetLastSelfTestChangedTime(CurrentTime);
-        break; 
+        break;
       case SW_COIN_1:
       case SW_COIN_2:
       case SW_COIN_3:
@@ -490,7 +490,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
         if (DEBUG_MESSAGES) {
           Serial.write("Start game button pressed\n\r");
         }
-        break;        
+        break;
     }
   }
 

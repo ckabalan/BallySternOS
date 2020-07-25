@@ -6,7 +6,7 @@
 
 #define SPECIAL_PURPLE_STAR     0
 #define SPECIAL_GREEN_STAR      1
-#define SPECIAL_YELLOW_STAR     2     
+#define SPECIAL_YELLOW_STAR     2
 #define SPECIAL_WHITE_STAR      3
 #define SPECIAL_AMBER_STAR      4
 #define D1K_BONUS               8
@@ -75,8 +75,8 @@ struct PlayfieldLight StarsLights[] = {
     {D2K_BONUS, 4, 7},
     {D6K_BONUS, 8, 7},
     {D10K_BONUS, 12, 7},
-    {SPECIAL_WHITE_STAR, 25, 7}, 
-    {OUT_LANES, 7, 0}, 
+    {SPECIAL_WHITE_STAR, 25, 7},
+    {OUT_LANES, 7, 0},
     {IN_LANES, 8, 0},
     {TRIPLE_BONUS_FEATURE, 18, 7},
     {D400_2_SPINNER, 21, 5},

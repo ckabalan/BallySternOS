@@ -25,9 +25,9 @@
 #define SW_COIN_3         8
 #define SW_COIN_2         9
 #define SW_COIN_1         10
-#define SW_LEFT_SLING     36 
+#define SW_LEFT_SLING     36
 #define SW_RIGHT_SLING    35
-#define SW_10_PT_SWITCH   34 
+#define SW_10_PT_SWITCH   34
 #define SW_SLAM           15
 
 // Defines for solenoids

@@ -17,7 +17,7 @@
 
     See <https://www.gnu.org/licenses/>.
  */
- 
+
 #include <Arduino.h>
 #include <EEPROM.h>
 #define DEBUG_MESSAGES    1
@@ -78,7 +78,7 @@ volatile byte SwitchStack[SWITCH_STACK_SIZE];
 #define ADDRESS_U11_B_CONTROL   0x1B
 
 void BSOS_DataWrite(int address, byte data) {
-  
+
   // Set data pins to output
   // Make pins 5-7 output (and pin 3 for R/W)
   DDRD = DDRD | 0xE8;
@@ -103,7 +103,7 @@ void BSOS_DataWrite(int address, byte data) {
   // Pulse VMA over one clock cycle
   // Set VMA ON
   PORTC = PORTC | 0x20;
-  
+
   // Wait while clock is low
   while(!(PIND & 0x10));
   // Wait while clock is high
@@ -114,7 +114,7 @@ void BSOS_DataWrite(int address, byte data) {
 
   // Unset address lines
   PORTC = PORTC & 0xE0;
-  
+
   // Set R/W back to HIGH
   PORTD = (PORTD | 0x08);
 
@@ -128,7 +128,7 @@ void BSOS_DataWrite(int address, byte data) {
 
 
 byte BSOS_DataRead(int address) {
-  
+
   // Set data pins to input
   // Make pins 5-7 input
   DDRD = DDRD & 0x1F;
@@ -148,7 +148,7 @@ byte BSOS_DataRead(int address) {
   // Pulse VMA over one clock cycle
   // Set VMA ON
   PORTC = PORTC | 0x20;
-  
+
   // Wait while clock is low
   while(!(PIND & 0x10));
 
@@ -196,7 +196,7 @@ void InitializeU10PIA() {
   // CB2 - lamp strobe 1
   // PA0-7 - output for switch bank, lamps, and BCD
   // PB0-7 - switch returns
-  
+
   BSOS_DataWrite(ADDRESS_U10_A_CONTROL, 0x38);
   // Set up U10A as output
   BSOS_DataWrite(ADDRESS_U10_A, 0xFF);
@@ -204,7 +204,7 @@ void InitializeU10PIA() {
   BSOS_DataWrite(ADDRESS_U10_A_CONTROL, BSOS_DataRead(ADDRESS_U10_A_CONTROL)|0x04);
   // Store F0 in U10A Output
   BSOS_DataWrite(ADDRESS_U10_A, 0xF0);
-  
+
   BSOS_DataWrite(ADDRESS_U10_B_CONTROL, 0x33);
   // Set up U10B as input
   BSOS_DataWrite(ADDRESS_U10_B, 0x00);
@@ -223,7 +223,7 @@ void ReadDipSwitches() {
   // Wait for switch capacitors to charge
   for (int count=0; count<BSOS_NUM_SWITCH_LOOPS; count++) WaitOneClockCycle();
   DipSwitches[0] = BSOS_DataRead(ADDRESS_U10_B);
- 
+
   // Turn on Switch strobe 6 & Read Switches
   BSOS_DataWrite(ADDRESS_U10_A, 0x40);
   BSOS_DataWrite(ADDRESS_U10_B_CONTROL, backupU10BControl & 0xF7);
@@ -265,7 +265,7 @@ void InitializeU11PIA() {
   BSOS_DataWrite(ADDRESS_U11_A_CONTROL, BSOS_DataRead(ADDRESS_U11_A_CONTROL)|0x04);
   // Store 00 in U11A Output
   BSOS_DataWrite(ADDRESS_U11_A, 0x00);
-  
+
   BSOS_DataWrite(ADDRESS_U11_B_CONTROL, 0x30);
   // Set up U11B as output
   BSOS_DataWrite(ADDRESS_U11_B, 0xFF);
@@ -274,7 +274,7 @@ void InitializeU11PIA() {
   // Store 9F in U11B Output
   BSOS_DataWrite(ADDRESS_U11_B, 0x9F);
   CurrentSolenoidByte = 0x9F;
-  
+
 }
 
 
@@ -297,7 +297,7 @@ void PushToSwitchStack(byte switchNumber) {
   }
 
   SwitchStack[SwitchStackLast] = switchNumber;
-  
+
   SwitchStackLast += 1;
   if (SwitchStackLast==SWITCH_STACK_SIZE) {
     // If the end index is off the end, then wrap
@@ -347,7 +347,7 @@ void BSOS_PushToSolenoidStack(byte solenoidNumber, byte numPushes, boolean disab
 
   for (int count=0; count<numPushes; count++) {
     SolenoidStack[SolenoidStackLast] = solenoidNumber;
-    
+
     SolenoidStackLast += 1;
     if (SolenoidStackLast==SOLENOID_STACK_SIZE) {
       // If the end index is off the end, then wrap
@@ -368,13 +368,13 @@ void PushToFrontOfSolenoidStack(byte solenoidNumber, byte numPushes) {
     SolenoidStack[SolenoidStackFirst] = solenoidNumber;
     if (SpaceLeftOnSolenoidStack()==0) return;
   }
-  
+
 }
 
 byte PullFirstFromSolenoidStack() {
   // If first and last are equal, there's nothing on the stack
   if (SolenoidStackFirst==SolenoidStackLast) return SOLENOID_STACK_EMPTY;
-  
+
   byte retVal = SolenoidStack[SolenoidStackFirst];
 
   SolenoidStackFirst += 1;
@@ -426,7 +426,7 @@ void InterruptService2() {
   // If we get a weird interupt from U11B, clear it
   byte u11BControl = BSOS_DataRead(ADDRESS_U11_B_CONTROL);
   if (u11BControl & 0x80) {
-    BSOS_DataRead(ADDRESS_U11_B);    
+    BSOS_DataRead(ADDRESS_U11_B);
   }
 
   byte u11AControl = BSOS_DataRead(ADDRESS_U11_A_CONTROL);
@@ -436,7 +436,7 @@ void InterruptService2() {
   if (u11AControl & 0x80) {
     // Backup U10A
     byte backupU10A = BSOS_DataRead(ADDRESS_U10_A);
-    
+
     // Disable lamp decoders & strobe latch
     BSOS_DataWrite(ADDRESS_U10_A, 0xFF);
     BSOS_DataWrite(ADDRESS_U10_B_CONTROL, BSOS_DataRead(ADDRESS_U10_B_CONTROL) | 0x08);
@@ -458,18 +458,18 @@ void InterruptService2() {
         // The BCD for this digit is in b4-b7, and the display latch strobes are in b0-b3 (and U11A:b0)
         byte displayDataByte = ((DisplayDigits[displayCount][CurrentDisplayDigit])<<4) | 0x0F;
         byte displayEnable = ((DisplayDigitEnable[displayCount])>>CurrentDisplayDigit)&0x01;
-  
+
         // if this digit shouldn't be displayed, then set data lines to 0xFX so digit will be blank
         if (!displayEnable) displayDataByte = 0xFF;
         if (DisplayDim[displayCount] && DisplayOffCycle) displayDataByte = 0xFF;
-  
+
         // Set low the appropriate latch strobe bit
         if (displayCount<4) {
           displayDataByte &= ~(0x01<<displayCount);
         }
         // Write out the digit & strobe (if it's 0-3)
         BSOS_DataWrite(ADDRESS_U10_A, displayDataByte);
-        if (displayCount==4) {            
+        if (displayCount==4) {
           // Strobe #5 latch on U11A:b0
           BSOS_DataWrite(ADDRESS_U11_A, BSOS_DataRead(ADDRESS_U11_A) & 0xFE);
         }
@@ -486,7 +486,7 @@ void InterruptService2() {
           BSOS_DataWrite(ADDRESS_U10_A, displayDataByte);
         } else {
           BSOS_DataWrite(ADDRESS_U11_A, BSOS_DataRead(ADDRESS_U11_A) | 0x01);
-          
+
           // Set proper display digit enable
           byte displayDigitsMask = (0x04<<CurrentDisplayDigit) | 0x01;
           BSOS_DataWrite(ADDRESS_U11_A, displayDigitsMask);
@@ -498,7 +498,7 @@ void InterruptService2() {
     BSOS_DataWrite(ADDRESS_U10_A_CONTROL, BSOS_DataRead(ADDRESS_U10_A_CONTROL) | 0x08);
 
     // Restore 10A from backup
-    BSOS_DataWrite(ADDRESS_U10_A, backupU10A);    
+    BSOS_DataWrite(ADDRESS_U10_A, backupU10A);
 
     CurrentDisplayDigit = CurrentDisplayDigit + 1;
     if (CurrentDisplayDigit>5) {
@@ -528,7 +528,7 @@ void InterruptService2() {
     BSOS_DataWrite(ADDRESS_U10_B_CONTROL, 0x30);
 
     int waitCount = 0;
-    
+
     // Copy old switch values
     byte switchCount;
     byte startingClosures;
@@ -542,8 +542,8 @@ void InterruptService2() {
       BSOS_DataWrite(ADDRESS_U10_B_CONTROL, 0x34);
 
       // Delay for switch capacitors to charge
-      for (waitCount=0; waitCount<BSOS_NUM_SWITCH_LOOPS; waitCount++) WaitOneClockCycle();      
-      
+      for (waitCount=0; waitCount<BSOS_NUM_SWITCH_LOOPS; waitCount++) WaitOneClockCycle();
+
       // Read the switches
       SwitchesNow[switchCount] = BSOS_DataRead(ADDRESS_U10_B);
 
@@ -603,13 +603,13 @@ void InterruptService2() {
             PushToSwitchStack(validSwitchNum);
           }
           validClosures = validClosures>>1;
-        }        
+        }
       }
 
-      // There are no port reads or writes for the rest of the loop, 
+      // There are no port reads or writes for the rest of the loop,
       // so we can allow the display interrupt to fire
       interrupts();
-      
+
       // Wait so total delay will allow lamp SCRs to get to the proper voltage
       for (waitCount=0; waitCount<BSOS_NUM_LAMP_LOOPS; waitCount++) WaitOneClockCycle();
       noInterrupts();
@@ -638,7 +638,7 @@ void InterruptService2() {
       BSOS_DataWrite(ADDRESS_U10_B_CONTROL, 0x30);
       if (BSOS_SLOW_DOWN_LAMP_STROBE) WaitOneClockCycle();
 
-      // Use the inhibit lines to set the actual data to the lamp SCRs 
+      // Use the inhibit lines to set the actual data to the lamp SCRs
       // (here, we don't care about the lower nibble because the address was already latched)
       byte lampOutput = LampStates[lampBitCount];
       // Every other time through the cycle, we OR in the dim variable
@@ -689,7 +689,7 @@ void BSOS_SetDisplay(int displayNumber, unsigned long value, boolean blankByMagn
     blank = blank * 2;
     if (value!=0 || count<minDigits) blank |= 1;
     DisplayDigits[displayNumber][5-count] = value%10;
-    value /= 10;    
+    value /= 10;
   }
 
   if (blankByMagnitude) DisplayDigitEnable[displayNumber] = blank;
@@ -700,12 +700,12 @@ void BSOS_SetDisplay(int displayNumber, unsigned long value, boolean blankByMagn
   DisplayDigits[displayNumber][3] = (value%1000) / 100;
   DisplayDigits[displayNumber][4] = (value%100) / 10;
   DisplayDigits[displayNumber][5] = (value%10);
-*/  
+*/
 }
 
 void BSOS_SetDisplayBlank(int displayNumber, byte bitMask) {
   if (displayNumber<0 || displayNumber>4) return;
-  
+
   DisplayDigitEnable[displayNumber] = bitMask;
 }
 
@@ -714,7 +714,7 @@ void BSOS_SetDisplayBlank(int displayNumber, byte bitMask) {
 //   bit=   b7 b6 b5 b4 b3 b2 b1 b0
 //   digit=  x  x  6  5  4  3  2  1
 //   (with digit 6 being the least-significant, 1's digit
-//  
+//
 // so, looking at it from left to right on the display
 //   digit=  1  2  3  4  5  6
 //   bit=   b0 b1 b2 b3 b4 b5
@@ -754,7 +754,7 @@ void BSOS_SetDisplayFlash(int displayNumber, unsigned long value, unsigned long 
       BSOS_SetDisplayBlank(displayNumber, 0);
     }
   }
-  
+
 }
 
 
@@ -789,7 +789,7 @@ void BSOS_SetDisplayMatch(int value, boolean displayOn, boolean showBothDigits) 
 
 void BSOS_SetDisplayBallInPlay(int value, boolean displayOn, boolean showBothDigits) {
   DisplayDigits[4][4] = (value%100) / 10;
-  DisplayDigits[4][5] = (value%10);  
+  DisplayDigits[4][5] = (value%10);
 
   byte enableMask = DisplayDigitEnable[4] & 0x06;
 
@@ -806,7 +806,7 @@ void BSOS_SetDisplayBallInPlay(int value, boolean displayOn, boolean showBothDig
 void BSOS_SetDisplayBIPBlank(byte digitsOn) {
   if (digitsOn==0) DisplayDigitEnable[4] &= 0x0F;
   else if (digitsOn==1) DisplayDigitEnable[4] = (DisplayDigitEnable[4] & 0x0F)|0x20;
-  else if (digitsOn==2) DisplayDigitEnable[4] = (DisplayDigitEnable[4] & 0x0F)|0x30;  
+  else if (digitsOn==2) DisplayDigitEnable[4] = (DisplayDigitEnable[4] & 0x0F)|0x30;
 }
 */
 
@@ -817,7 +817,7 @@ void BSOS_SetDimDivisor(byte level, byte divisor) {
 
 void BSOS_SetLampState(int lampNum, byte s_lampState, byte s_lampDim, int s_lampFlashPeriod) {
   if (lampNum>59 || lampNum<0) return;
-  
+
   if (s_lampState) {
     LampStates[lampNum/4] &= ~(0x10<<(lampNum%4));
     LampFlashPeriod[lampNum] = s_lampFlashPeriod;
@@ -826,13 +826,13 @@ void BSOS_SetLampState(int lampNum, byte s_lampState, byte s_lampDim, int s_lamp
     LampFlashPeriod[lampNum] = 0;
   }
 
-  if (s_lampDim & 0x01) {    
+  if (s_lampDim & 0x01) {
     LampDim0[lampNum/4] |= (0x10<<(lampNum%4));
   } else {
     LampDim0[lampNum/4] &= ~(0x10<<(lampNum%4));
   }
 
-  if (s_lampDim & 0x02) {    
+  if (s_lampDim & 0x02) {
     LampDim1[lampNum/4] |= (0x10<<(lampNum%4));
   } else {
     LampDim1[lampNum/4] &= ~(0x10<<(lampNum%4));
@@ -856,7 +856,7 @@ void BSOS_ApplyFlashToLamps(unsigned long curTime) {
 
 void BSOS_FlashAllLamps(unsigned long curTime) {
   for (int count=0; count<60; count++) {
-    BSOS_SetLampState(count, 1, 0, 500);  
+    BSOS_SetLampState(count, 1, 0, 500);
   }
 
   BSOS_ApplyFlashToLamps(curTime);
@@ -864,7 +864,7 @@ void BSOS_FlashAllLamps(unsigned long curTime) {
 
 void BSOS_TurnOffAllLamps() {
   for (int count=0; count<60; count++) {
-    BSOS_SetLampState(count, 0, 0, 0);  
+    BSOS_SetLampState(count, 0, 0, 0);
   }
 }
 
@@ -872,7 +872,7 @@ void BSOS_TurnOffAllLamps() {
 void BSOS_InitializeMPU() {
   // Wait for board to boot
   delay(100);
-  
+
   // Arduino A0 = MPU A0
   // Arduino A1 = MPU A1
   // Arduino A2 = MPU A3
@@ -909,7 +909,7 @@ void BSOS_InitializeMPU() {
 
   // Read values from MPU dip switches
   ReadDipSwitches();
-  
+
   // Reset address bus
   BSOS_DataRead(0);
 
@@ -921,7 +921,7 @@ void BSOS_InitializeMPU() {
   SwitchStackFirst = 0;
   SwitchStackLast = 0;
 
-  CurrentDisplayDigit = 0; 
+  CurrentDisplayDigit = 0;
 
   // Set default values for the displays
   for (int displayCount=0; displayCount<5; displayCount++) {
@@ -946,7 +946,7 @@ void BSOS_InitializeMPU() {
     LampFlashPeriod[lampFlashCount] = 0;
   }
 
-  // Reset all the switch values 
+  // Reset all the switch values
   // (set them as closed so that if they're stuck they don't register as new events)
   byte switchCount;
   for (switchCount=0; switchCount<5; switchCount++) {
@@ -954,7 +954,7 @@ void BSOS_InitializeMPU() {
     SwitchesMinus1[switchCount] = 0xFF;
     SwitchesNow[switchCount] = 0xFF;
   }
-  
+
   // Hook up the interrupt
   attachInterrupt(digitalPinToInterrupt(2), InterruptService2, LOW);
   BSOS_DataRead(0);  // Reset address bus
@@ -1012,7 +1012,7 @@ void BSOS_SetDisableFlippers(boolean disableFlippers, byte solbit) {
   } else {
     CurrentSolenoidByte = CurrentSolenoidByte & ~solbit;
   }
-  
+
   BSOS_DataWrite(ADDRESS_U11_B, CurrentSolenoidByte);
 }
 
@@ -1061,13 +1061,13 @@ void BSOS_PlaySoundSquawkAndTalk(byte soundByte) {
 
   byte oldSolenoidControlByte, soundControlByte;
 
-  // mask further zero-crossing interrupts during this 
+  // mask further zero-crossing interrupts during this
   InsideZeroCrossingInterrupt += 1;
 
   // Get the current value of U11:PortB
   oldSolenoidControlByte = BSOS_DataRead(ADDRESS_U11_B);
-  soundControlByte = oldSolenoidControlByte; 
-  
+  soundControlByte = oldSolenoidControlByte;
+
   // Mask off momentary solenoids
   soundControlByte &= 0xF0;
   // Add in lower nibble
@@ -1078,10 +1078,10 @@ void BSOS_PlaySoundSquawkAndTalk(byte soundByte) {
 
   // Strobe sound latch
   BSOS_DataWrite(ADDRESS_U11_B_CONTROL, BSOS_DataRead(ADDRESS_U11_B_CONTROL)|0x04);
-  
+
   // put the new byte on U11:PortB
   BSOS_DataWrite(ADDRESS_U11_B, soundControlByte);
-  
+
   // wait 200 microseconds
   delayMicroseconds(142);
 
@@ -1131,9 +1131,9 @@ void BSOS_WriteHighScoreToEEProm(unsigned long score) {
 unsigned long BSOS_ReadHighScoreFromEEProm() {
   unsigned long value;
 
-  value = (((unsigned long)EEPROM.read(BSOS_HIGHSCORE_EEPROM_START_BYTE+3))<<24) | 
-          ((unsigned long)(EEPROM.read(BSOS_HIGHSCORE_EEPROM_START_BYTE+2))<<16) | 
-          ((unsigned long)(EEPROM.read(BSOS_HIGHSCORE_EEPROM_START_BYTE+1))<<8) | 
+  value = (((unsigned long)EEPROM.read(BSOS_HIGHSCORE_EEPROM_START_BYTE+3))<<24) |
+          ((unsigned long)(EEPROM.read(BSOS_HIGHSCORE_EEPROM_START_BYTE+2))<<16) |
+          ((unsigned long)(EEPROM.read(BSOS_HIGHSCORE_EEPROM_START_BYTE+1))<<8) |
           ((unsigned long)(EEPROM.read(BSOS_HIGHSCORE_EEPROM_START_BYTE)));
 
   if (value==0xFFFFFFFF) {
@@ -1147,13 +1147,13 @@ unsigned long BSOS_ReadHighScoreFromEEProm() {
 unsigned long BSOS_ReadULFromEEProm(unsigned short startByte, unsigned long defaultValue) {
   unsigned long value;
 
-  value = (((unsigned long)EEPROM.read(startByte+3))<<24) | 
-          ((unsigned long)(EEPROM.read(startByte+2))<<16) | 
-          ((unsigned long)(EEPROM.read(startByte+1))<<8) | 
+  value = (((unsigned long)EEPROM.read(startByte+3))<<24) |
+          ((unsigned long)(EEPROM.read(startByte+2))<<16) |
+          ((unsigned long)(EEPROM.read(startByte+1))<<8) |
           ((unsigned long)(EEPROM.read(startByte)));
 
   if (value==0xFFFFFFFF) {
-    value = defaultValue; 
+    value = defaultValue;
     BSOS_WriteULToEEProm(startByte, value);
   }
   return value;
